@@ -20,6 +20,8 @@ def launch(
     global_log_level,
     global_node_selectors,
     global_tolerations,
+    global_ingress_class_name,
+    global_ingress_annotations,
     persistent,
     network_id,
     num_participants,
@@ -112,6 +114,12 @@ def launch(
         tolerations = input_parser.get_client_tolerations(
             participant.el_tolerations, participant.tolerations, global_tolerations
         )
+        ingress_class_name = input_parser.get_client_ingress_class_name(
+            participant.el_ingress_class_name, global_ingress_class_name
+        )
+        ingress_annotations = input_parser.get_client_ingress_annotations(
+            participant.el_ingress_annotations, global_ingress_annotations
+        )
 
         if el_type not in el_launchers:
             fail(
@@ -140,6 +148,8 @@ def launch(
             persistent,
             tolerations,
             node_selectors,
+            ingress_class_name,
+            ingress_annotations,
             port_publisher,
             index,
         )

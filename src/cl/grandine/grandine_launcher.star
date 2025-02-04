@@ -48,6 +48,8 @@ def launch(
     checkpoint_sync_url,
     port_publisher,
     participant_index,
+    ingress_class_name,
+    ingress_annotations,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.cl_log_level, global_log_level, VERBOSITY_LEVELS
@@ -71,6 +73,8 @@ def launch(
         checkpoint_sync_url,
         port_publisher,
         participant_index,
+        ingress_class_name,
+        ingress_annotations,
     )
 
     beacon_service = plan.add_service(beacon_service_name, config)
@@ -142,6 +146,8 @@ def get_beacon_config(
     checkpoint_sync_url,
     port_publisher,
     participant_index,
+    ingress_class_name,
+    ingress_annotations,
 ):
     validator_keys_dirpath = ""
     validator_secrets_dirpath = ""
@@ -334,6 +340,8 @@ def get_beacon_config(
         "tolerations": tolerations,
         "node_selectors": node_selectors,
         "user": User(uid=0, gid=0),
+        "ingress_class_name": ingress_class_name,
+        "ingress_annotations": ingress_annotations,
     }
 
     if int(participant.cl_min_cpu) > 0:

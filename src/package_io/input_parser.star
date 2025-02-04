@@ -118,6 +118,8 @@ def input_parser(plan, input_args):
     result["parallel_keystore_generation"] = False
     result["global_tolerations"] = []
     result["global_node_selectors"] = {}
+    result["global_ingress_class_name"] = ""
+    result["global_ingress_annotations"] = {}
     result["port_publisher"] = get_port_publisher_params("default")
     result["spamoor_params"] = get_default_spamoor_params()
     result["spamoor_blob_params"] = get_default_spamoor_blob_params()
@@ -238,12 +240,16 @@ def input_parser(plan, input_args):
                 el_extra_env_vars=participant["el_extra_env_vars"],
                 el_extra_labels=participant["el_extra_labels"],
                 el_tolerations=participant["el_tolerations"],
+                el_ingress_class_name=participant["el_ingress_class_name"],
+                el_ingress_annotations=participant["el_ingress_annotations"],
                 cl_type=participant["cl_type"],
                 cl_image=participant["cl_image"],
                 cl_log_level=participant["cl_log_level"],
                 cl_volume_size=participant["cl_volume_size"],
                 cl_extra_env_vars=participant["cl_extra_env_vars"],
                 cl_tolerations=participant["cl_tolerations"],
+                cl_ingress_class_name=participant["cl_ingress_class_name"],
+                cl_ingress_annotations=participant["cl_ingress_annotations"],
                 use_separate_vc=participant["use_separate_vc"],
                 vc_type=participant["vc_type"],
                 vc_image=participant["vc_image"],
@@ -485,6 +491,8 @@ def input_parser(plan, input_args):
         ),
         global_tolerations=result["global_tolerations"],
         global_node_selectors=result["global_node_selectors"],
+        global_ingress_class_name=result["global_ingress_class_name"],
+        global_ingress_annotations=result["global_ingress_annotations"],
         keymanager_enabled=result["keymanager_enabled"],
         checkpoint_sync_enabled=result["checkpoint_sync_enabled"],
         checkpoint_sync_url=result["checkpoint_sync_url"],
@@ -553,7 +561,7 @@ def parse_network_params(plan, input_args):
 
     for attr in input_args:
         value = input_args[attr]
-        # if its insterted we use the value inserted
+        # if its inserted we use the value inserted
         if attr not in ATTR_TO_BE_SKIPPED_AT_ROOT and attr in input_args:
             result[attr] = value
         elif attr == "network_params":
@@ -841,6 +849,14 @@ def get_client_tolerations(
 
     return toleration_list
 
+def get_client_ingress_class_name(ingress_class_name, global_ingress_class_name):
+    ingress_class_name = ingress_class_name if ingress_class_name else global_ingress_class_name
+    return ingress_class_name
+
+def get_client_ingress_annotations(ingress_annotations, global_ingress_annotations):
+    ingress_annotations = ingress_annotations if ingress_annotations else global_ingress_annotations
+    return ingress_annotations
+
 
 def get_client_node_selectors(participant_node_selectors, global_node_selectors):
     node_selectors = {}
@@ -875,6 +891,8 @@ def default_input_args(input_args):
         "apache_port": None,
         "global_tolerations": [],
         "global_node_selectors": {},
+        "global_ingress_class_name": "",
+        "global_ingress_annotations": {},
         "use_remote_signer": False,
         "keymanager_enabled": False,
         "checkpoint_sync_enabled": False,
@@ -996,6 +1014,8 @@ def default_participant():
         "cl_max_cpu": 0,
         "cl_min_mem": 0,
         "cl_max_mem": 0,
+        "cl_ingress_class_name": "",
+        "cl_ingress_annotations": {},
         "supernode": False,
         "use_separate_vc": None,
         "vc_type": "",

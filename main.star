@@ -91,6 +91,8 @@ def run(plan, args={}):
     xatu_sentry_params = args_with_right_defaults.xatu_sentry_params
     global_tolerations = args_with_right_defaults.global_tolerations
     global_node_selectors = args_with_right_defaults.global_node_selectors
+    global_ingress_class_name = args_with_right_defaults.global_ingress_class_name
+    global_ingress_annotations = args_with_right_defaults.global_ingress_annotations
     keymanager_enabled = args_with_right_defaults.keymanager_enabled
     apache_port = args_with_right_defaults.apache_port
     docker_cache_params = args_with_right_defaults.docker_cache_params
@@ -171,6 +173,8 @@ def run(plan, args={}):
         xatu_sentry_params,
         global_tolerations,
         global_node_selectors,
+        global_ingress_class_name,
+        global_ingress_annotations,
         keymanager_enabled,
         parallel_keystore_generation,
     )

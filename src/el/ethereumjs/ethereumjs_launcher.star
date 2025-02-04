@@ -39,6 +39,8 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
+    ingress_class_name,
+    ingress_annotations,
     port_publisher,
     participant_index,
 ):
@@ -59,6 +61,8 @@ def launch(
         persistent,
         tolerations,
         node_selectors,
+        ingress_class_name,
+        ingress_annotations,
         port_publisher,
         participant_index,
     )
@@ -101,6 +105,8 @@ def get_config(
     persistent,
     tolerations,
     node_selectors,
+    ingress_class_name,
+    ingress_annotations,
     port_publisher,
     participant_index,
 ):
