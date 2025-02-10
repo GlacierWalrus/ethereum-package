@@ -26,6 +26,8 @@ def launch(
     global_tolerations,
     global_ingress_class_name,
     global_ingress_annotations,
+    global_ingress_host,
+    global_ingress_tls_host,
     persistent,
     num_participants,
     validator_data,
@@ -114,6 +116,16 @@ def launch(
             global_ingress_annotations,
         )
 
+        ingress_host = input_parser.get_client_ingress_host(
+            participant.cl_ingress_host,
+            global_ingress_host,
+        )
+
+        ingress_tls_host = input_parser.get_client_ingress_tls_host(
+            participant.cl_ingress_tls_host,
+            global_ingress_tls_host,
+        )
+
         if cl_type not in cl_launchers:
             fail(
                 "Unsupported launcher '{0}', need one of '{1}'".format(
@@ -189,12 +201,14 @@ def launch(
                 persistent,
                 tolerations,
                 node_selectors,
+                ingress_class_name,
+                ingress_annotations,
+                ingress_host,
+                ingress_tls_host,
                 args_with_right_defaults.checkpoint_sync_enabled,
                 checkpoint_sync_url,
                 args_with_right_defaults.port_publisher,
                 index,
-                ingress_class_name,
-                ingress_annotations,
             )
         else:
             boot_cl_client_ctx = all_cl_contexts
@@ -212,12 +226,14 @@ def launch(
                 persistent,
                 tolerations,
                 node_selectors,
+                ingress_class_name,
+                ingress_annotations,
+                ingress_host,
+                ingress_tls_host,
                 args_with_right_defaults.checkpoint_sync_enabled,
                 checkpoint_sync_url,
                 args_with_right_defaults.port_publisher,
                 index,
-                ingress_class_name,
-                ingress_annotations,
             )
 
         # Add participant cl additional prometheus labels

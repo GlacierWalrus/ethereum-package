@@ -38,6 +38,8 @@ def launch(
     node_selectors,
     ingress_class_name,
     ingress_annotations,
+    ingress_host,
+    ingress_tls_host,
     port_publisher,
     participant_index,
 ):
@@ -60,6 +62,8 @@ def launch(
         node_selectors,
         ingress_class_name,
         ingress_annotations,
+        ingress_host,
+        ingress_tls_host,
         port_publisher,
         participant_index,
     )
@@ -105,6 +109,8 @@ def get_config(
     node_selectors,
     ingress_class_name,
     ingress_annotations,
+    ingress_host,
+    ingress_tls_host,
     port_publisher,
     participant_index,
 ):
@@ -236,6 +242,10 @@ def get_config(
         ),
         "tolerations": tolerations,
         "node_selectors": node_selectors,
+        "ingress_class_name": ingress_class_name,
+        "ingress_annotations": ingress_annotations,
+        "ingress_host": ingress_host,
+        "ingress_tls_host": ingress_tls_host,
     }
 
     if participant.el_min_cpu > 0:

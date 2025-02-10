@@ -120,6 +120,8 @@ def input_parser(plan, input_args):
     result["global_node_selectors"] = {}
     result["global_ingress_class_name"] = ""
     result["global_ingress_annotations"] = {}
+    result["global_ingress_host"] = ""
+    result["global_ingress_tls_host"] = ""
     result["port_publisher"] = get_port_publisher_params("default")
     result["spamoor_params"] = get_default_spamoor_params()
     result["spamoor_blob_params"] = get_default_spamoor_blob_params()
@@ -242,6 +244,8 @@ def input_parser(plan, input_args):
                 el_tolerations=participant["el_tolerations"],
                 el_ingress_class_name=participant["el_ingress_class_name"],
                 el_ingress_annotations=participant["el_ingress_annotations"],
+                el_ingress_host=participant["el_ingress_host"],
+                el_ingress_tls_host=participant["el_ingress_tls_host"],
                 cl_type=participant["cl_type"],
                 cl_image=participant["cl_image"],
                 cl_log_level=participant["cl_log_level"],
@@ -250,6 +254,8 @@ def input_parser(plan, input_args):
                 cl_tolerations=participant["cl_tolerations"],
                 cl_ingress_class_name=participant["cl_ingress_class_name"],
                 cl_ingress_annotations=participant["cl_ingress_annotations"],
+                cl_ingress_host=participant["cl_ingress_host"],
+                cl_ingress_tls_host=participant["cl_ingress_tls_host"],
                 use_separate_vc=participant["use_separate_vc"],
                 vc_type=participant["vc_type"],
                 vc_image=participant["vc_image"],
@@ -493,6 +499,8 @@ def input_parser(plan, input_args):
         global_node_selectors=result["global_node_selectors"],
         global_ingress_class_name=result["global_ingress_class_name"],
         global_ingress_annotations=result["global_ingress_annotations"],
+        global_ingress_host=result["global_ingress_host"],
+        global_ingress_tls_host=result["global_ingress_tls_host"],
         keymanager_enabled=result["keymanager_enabled"],
         checkpoint_sync_enabled=result["checkpoint_sync_enabled"],
         checkpoint_sync_url=result["checkpoint_sync_url"],
@@ -857,6 +865,13 @@ def get_client_ingress_annotations(ingress_annotations, global_ingress_annotatio
     ingress_annotations = ingress_annotations if ingress_annotations else global_ingress_annotations
     return ingress_annotations
 
+def get_client_ingress_host(ingress_host, global_ingress_host):
+    ingress_host = ingress_host if ingress_host else global_ingress_host
+    return ingress_host if ingress_host else None
+
+def get_client_ingress_tls_host(ingress_tls_host, global_ingress_tls_host):
+    ingress_tls_host = ingress_tls_host if ingress_tls_host else global_ingress_tls_host
+    return ingress_tls_host if ingress_tls_host else None
 
 def get_client_node_selectors(participant_node_selectors, global_node_selectors):
     node_selectors = {}
@@ -893,6 +908,8 @@ def default_input_args(input_args):
         "global_node_selectors": {},
         "global_ingress_class_name": "",
         "global_ingress_annotations": {},
+        "global_ingress_host": "",
+        "global_ingress_tls_host": "",
         "use_remote_signer": False,
         "keymanager_enabled": False,
         "checkpoint_sync_enabled": False,
@@ -1002,6 +1019,10 @@ def default_participant():
         "el_max_cpu": 0,
         "el_min_mem": 0,
         "el_max_mem": 0,
+        "el_ingress_class_name": "",
+        "el_ingress_annotations": {},
+        "el_ingress_host": "",
+        "el_ingress_tls_host": "",
         "cl_type": "lighthouse",
         "cl_image": "",
         "cl_log_level": "",
@@ -1016,6 +1037,8 @@ def default_participant():
         "cl_max_mem": 0,
         "cl_ingress_class_name": "",
         "cl_ingress_annotations": {},
+        "cl_ingress_host": "",
+        "cl_ingress_tls_host": "",
         "supernode": False,
         "use_separate_vc": None,
         "vc_type": "",

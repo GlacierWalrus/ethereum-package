@@ -14,6 +14,8 @@ participants:
     el_max_mem: 0
     el_ingress_class_name: ""
     el_ingress_annotations: {}
+    el_ingress_host: ""
+    el_ingress_tls_host: ""
 # CL
     cl_type: lighthouse
     cl_image: sigp/lighthouse:latest-unstable
@@ -29,6 +31,8 @@ participants:
     cl_max_mem: 0
     cl_ingress_class_name: ""
     cl_ingress_annotations: {}
+    cl_ingress_host: ""
+    cl_ingress_tls_host: ""
     supernode: false
     use_separate_vc: true
 # Validator
@@ -200,3 +204,5 @@ port_publisher:
     public_port_start: 36000
 global_ingress_class_name: ""
 global_ingress_annotations: {}
+global_ingress_host: ""
+global_ingress_tls_host: ""
