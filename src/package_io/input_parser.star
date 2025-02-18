@@ -867,11 +867,11 @@ def get_client_ingress_annotations(ingress_annotations, global_ingress_annotatio
 
 def get_client_ingress_host(ingress_host, global_ingress_host):
     ingress_host = ingress_host if ingress_host else global_ingress_host
-    return ingress_host if ingress_host else None
+    return ingress_host
 
 def get_client_ingress_tls_host(ingress_tls_host, global_ingress_tls_host):
     ingress_tls_host = ingress_tls_host if ingress_tls_host else global_ingress_tls_host
-    return ingress_tls_host if ingress_tls_host else None
+    return ingress_tls_host
 
 def get_client_node_selectors(participant_node_selectors, global_node_selectors):
     node_selectors = {}
