@@ -40,10 +40,9 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.el_log_level, global_log_level, VERBOSITY_LEVELS
@@ -106,11 +105,13 @@ def get_config(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
+    # Get kubernetes configuration
+    kubernetes_config = input_parser.get_kubernetes_config(kubernetes_config)
+
     public_ports = {}
     discovery_port = DISCOVERY_PORT_NUM
     if port_publisher.el_enabled:
@@ -143,121 +144,54 @@ def get_config(
         "besu",
         "--logging=" + log_level,
         "--data-path=" + EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
-        "--host-allowlist=*",
+        "--genesis-file=" + constants.GENESIS_CONFIG_MOUNT_PATH_ON_CONTAINER + "/genesis.json",
         "--rpc-http-enabled=true",
         "--rpc-http-host=0.0.0.0",
         "--rpc-http-port={0}".format(RPC_PORT_NUM),
-        "--rpc-http-api=ADMIN,CLIQUE,ETH,NET,DEBUG,TXPOOL,ENGINE,TRACE,WEB3",
         "--rpc-http-cors-origins=*",
-        "--rpc-http-max-active-connections=300",
         "--rpc-ws-enabled=true",
         "--rpc-ws-host=0.0.0.0",
         "--rpc-ws-port={0}".format(WS_PORT_NUM),
-        "--rpc-ws-api=ADMIN,CLIQUE,ETH,NET,DEBUG,TXPOOL,ENGINE,TRACE,WEB3",
-        "--p2p-enabled=true",
-        "--p2p-host=" + port_publisher.nat_exit_ip,
-        "--p2p-port={0}".format(discovery_port),
+        "--host-allowlist=*",
         "--engine-rpc-enabled=true",
-        "--engine-jwt-secret=" + constants.JWT_MOUNT_PATH_ON_CONTAINER,
         "--engine-host-allowlist=*",
+        "--engine-jwt-secret=" + constants.JWT_MOUNT_PATH_ON_CONTAINER,
         "--engine-rpc-port={0}".format(ENGINE_HTTP_RPC_PORT_NUM),
-        "--sync-mode=FULL",
-        "--data-storage-format={0}".format(
-            "VERKLE" if "verkle-gen" in launcher.network else "BONSAI"
-        ),
-        "--metrics-enabled=true",
+        "--p2p-enabled=true",
+        "--p2p-host={0}".format(port_publisher.nat_exit_ip),
+        "--p2p-port={0}".format(discovery_port),
+        "--metrics-enabled",
         "--metrics-host=0.0.0.0",
         "--metrics-port={0}".format(METRICS_PORT_NUM),
-        "--min-gas-price=1000000000",
-        "--bonsai-limit-trie-logs-enabled=false"
-        if "verkle" not in launcher.network
-        else "",
+        "--sync-mode=FULL",
+        "--rpc-http-api=ADMIN,DEBUG,ETH,NET,WEB3,TXPOOL",
+        "--rpc-ws-api=ADMIN,DEBUG,ETH,NET,WEB3,TXPOOL",
     ]
-    if launcher.network not in constants.PUBLIC_NETWORKS:
-        cmd.append(
-            "--genesis-file="
-            + constants.GENESIS_CONFIG_MOUNT_PATH_ON_CONTAINER
-            + "/besu.json"
-        )
-    else:
-        cmd.append("--network=" + launcher.network)
 
-    if launcher.network == constants.NETWORK_NAME.kurtosis:
-        if len(existing_el_clients) > 0:
-            cmd.append(
-                "--bootnodes="
-                + ",".join(
-                    [
-                        ctx.enode
-                        for ctx in existing_el_clients[: constants.MAX_ENODE_ENTRIES]
-                    ]
-                )
-            )
-    elif (
-        launcher.network not in constants.PUBLIC_NETWORKS
-        and constants.NETWORK_NAME.shadowfork not in launcher.network
-    ):
-        cmd.append(
-            "--bootnodes="
-            + shared_utils.get_devnet_enodes(
-                plan, launcher.el_cl_genesis_data.files_artifact_uuid
-            )
-        )
-
-    if len(participant.el_extra_params) > 0:
-        # we do this as extra_params isn't a normal [] but a proto repeated array
-        cmd.extend([param for param in participant.el_extra_params])
-
-    cmd_str = " ".join(cmd)
-
-    env_vars = participant.el_extra_env_vars | JAVA_OPTS
-
-    files = {
-        constants.GENESIS_DATA_MOUNTPOINT_ON_CLIENTS: launcher.el_cl_genesis_data.files_artifact_uuid,
-        constants.JWT_MOUNTPOINT_ON_CLIENTS: launcher.jwt_file,
-    }
-
-    if persistent:
-        files[EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER] = Directory(
-            persistent_key="data-{0}".format(service_name),
-            size=int(participant.el_volume_size)
-            if int(participant.el_volume_size) > 0
-            else constants.VOLUME_SIZE[launcher.network][
-                constants.EL_TYPE.besu + "_volume_size"
-            ],
-        )
-
-    config_args = {
-        "image": participant.el_image,
-        "ports": used_ports,
-        "public_ports": public_ports,
-        "cmd": [cmd_str],
-        "files": files,
-        "entrypoint": ENTRYPOINT_ARGS,
-        "private_ip_address_placeholder": constants.PRIVATE_IP_ADDRESS_PLACEHOLDER,
-        "env_vars": env_vars,
-        "labels": shared_utils.label_maker(
-            client=constants.EL_TYPE.besu,
-            client_type=constants.CLIENT_TYPES.el,
-            image=participant.el_image[-constants.MAX_LABEL_LENGTH :],
-            connected_client=cl_client_name,
-            extra_labels=participant.el_extra_labels,
-            supernode=participant.supernode,
+    return ServiceConfig(
+        image=participant.el_image,
+        ports=used_ports,
+        public_ports=public_ports,
+        cmd=cmd + participant.el_extra_params,
+        files={
+            constants.GENESIS_CONFIG_MOUNT_PATH_ON_CONTAINER: launcher.genesis_config,
+            constants.JWT_MOUNT_PATH_ON_CONTAINER: launcher.jwt_secret,
+        },
+        entrypoint=ENTRYPOINT_ARGS,
+        ready_conditions=el_shared.get_el_ready_conditions(
+            constants.RPC_PORT_ID, constants.ENGINE_RPC_PORT_ID
         ),
-        "user": User(uid=0, gid=0),
-        "tolerations": tolerations,
-        "node_selectors": node_selectors,
-    }
-
-    if participant.el_min_cpu > 0:
-        config_args["min_cpu"] = participant.el_min_cpu
-    if participant.el_max_cpu > 0:
-        config_args["max_cpu"] = participant.el_max_cpu
-    if participant.el_min_mem > 0:
-        config_args["min_memory"] = participant.el_min_mem
-    if participant.el_max_mem > 0:
-        config_args["max_memory"] = participant.el_max_mem
-    return ServiceConfig(**config_args)
+        private_ip_address_placeholder=constants.PRIVATE_IP_ADDRESS_PLACEHOLDER,
+        min_cpu=participant.el_min_cpu,
+        max_cpu=participant.el_max_cpu,
+        min_memory=participant.el_min_mem,
+        max_memory=participant.el_max_mem,
+        env_vars=participant.el_extra_env_vars,
+        labels=participant.el_extra_labels,
+        node_selectors=node_selectors,
+        tolerations=tolerations,
+        kubernetes_config=kubernetes_config,
+    )
 
 
 def new_besu_launcher(el_cl_genesis_data, jwt_file, network):

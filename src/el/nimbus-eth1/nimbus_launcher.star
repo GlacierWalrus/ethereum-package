@@ -36,8 +36,6 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
 ):
@@ -58,8 +56,6 @@ def launch(
         persistent,
         tolerations,
         node_selectors,
-        ingress_class_name,
-        ingress_annotations,
         port_publisher,
         participant_index,
     )
@@ -103,11 +99,15 @@ def get_config(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
+    # Get kubernetes configuration
+    kubernetes_config = input_parser.get_kubernetes_config(
+        kubernetes_config,
+    )
+
     public_ports = {}
     discovery_port = DISCOVERY_PORT_NUM
     if port_publisher.el_enabled:
@@ -222,6 +222,7 @@ def get_config(
         ),
         "tolerations": tolerations,
         "node_selectors": node_selectors,
+        "kubernetes_config": kubernetes_config,
     }
 
     if participant.el_min_cpu > 0:

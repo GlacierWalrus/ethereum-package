@@ -37,8 +37,6 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
 ):
@@ -51,16 +49,13 @@ def launch(
     config = get_config(
         plan,
         launcher,
-        participant,
         service_name,
-        existing_el_clients,
-        cl_client_name,
+        participant,
         log_level,
+        existing_el_clients,
         persistent,
         tolerations,
         node_selectors,
-        ingress_class_name,
-        ingress_annotations,
         port_publisher,
         participant_index,
     )
@@ -105,11 +100,15 @@ def get_config(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
+    # Get kubernetes configuration
+    kubernetes_config = input_parser.get_kubernetes_config(
+       kubernetes_config,
+    )
+
     init_datadir_cmd_str = "erigon init --datadir={0} {1}".format(
         EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
         constants.GENESIS_CONFIG_MOUNT_PATH_ON_CONTAINER + "/genesis.json",

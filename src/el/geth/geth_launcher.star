@@ -47,12 +47,9 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
-    ingress_host,
-    ingress_tls_host,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.el_log_level, global_log_level, VERBOSITY_LEVELS
@@ -71,13 +68,11 @@ def launch(
         persistent,
         tolerations,
         node_selectors,
-        ingress_class_name,
-        ingress_annotations,
-        ingress_host,
-        ingress_tls_host,
         port_publisher,
         participant_index,
+        kubernetes_config,
     )
+    plan.print(">>>> DEBUG - config for {0}: {1}".format(service_name, config))
 
     service = plan.add_service(service_name, config)
 
@@ -119,13 +114,15 @@ def get_config(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
-    ingress_host,
-    ingress_tls_host,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
+    plan.print("DEBUG - ENTRY kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
+    # Get the kubernetes config for this participant
+    # kubernetes_config = input_parser.get_kubernetes_config(plan,kubernetes_config)
+    plan.print("DEBUG - After input_parser.get_kubernetes_config kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
+
     if (
         "--gcmode=archive" in participant.el_extra_params
         or "--gcmode archive" in participant.el_extra_params
@@ -331,11 +328,11 @@ def get_config(
         ),
         "tolerations": tolerations,
         "node_selectors": node_selectors,
-        "ingress_class_name": participant.el_ingress_class_name,
-        "ingress_annotations": participant.el_ingress_annotations,
-        "ingress_host": participant.el_ingress_host,
-        "ingress_tls_host": participant.el_ingress_tls_host,
+        "kubernetes_config": kubernetes_config,
     }
+
+    # Add debug print of kubernetes_config
+    plan.print("DEBUG - kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
 
     if participant.el_min_cpu > 0:
         config_args["min_cpu"] = participant.el_min_cpu

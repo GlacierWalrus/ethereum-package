@@ -22,12 +22,8 @@ def launch(
     keymanager_file,
     args_with_right_defaults,
     all_el_contexts,
-    global_node_selectors,
-    global_tolerations,
-    global_ingress_class_name,
-    global_ingress_annotations,
-    global_ingress_host,
-    global_ingress_tls_host,
+    node_selectors,
+    tolerations,
     persistent,
     num_participants,
     validator_data,
@@ -97,33 +93,11 @@ def launch(
     for index, participant in enumerate(args_with_right_defaults.participants):
         cl_type = participant.cl_type
         el_type = participant.el_type
-        node_selectors = input_parser.get_client_node_selectors(
-            participant.node_selectors,
-            global_node_selectors,
-        )
-
-        tolerations = input_parser.get_client_tolerations(
-            participant.cl_tolerations, participant.tolerations, global_tolerations
-        )
-
-        ingress_class_name = input_parser.get_client_ingress_class_name(
-            participant.cl_ingress_class_name,
-            global_ingress_class_name,
-        )
-
-        ingress_annotations = input_parser.get_client_ingress_annotations(
-            participant.cl_ingress_annotations,
-            global_ingress_annotations,
-        )
-
-        ingress_host = input_parser.get_client_ingress_host(
-            participant.cl_ingress_host,
-            global_ingress_host,
-        )
-
-        ingress_tls_host = input_parser.get_client_ingress_tls_host(
-            participant.cl_ingress_tls_host,
-            global_ingress_tls_host,
+        
+        # Get kubernetes configuration
+        kubernetes_config = input_parser.get_kubernetes_config(
+            plan,
+            participant.cl_kubernetes_config,
         )
 
         if cl_type not in cl_launchers:
@@ -201,14 +175,11 @@ def launch(
                 persistent,
                 tolerations,
                 node_selectors,
-                ingress_class_name,
-                ingress_annotations,
-                ingress_host,
-                ingress_tls_host,
                 args_with_right_defaults.checkpoint_sync_enabled,
                 checkpoint_sync_url,
                 args_with_right_defaults.port_publisher,
                 index,
+                kubernetes_config,
             )
         else:
             boot_cl_client_ctx = all_cl_contexts
@@ -226,14 +197,11 @@ def launch(
                 persistent,
                 tolerations,
                 node_selectors,
-                ingress_class_name,
-                ingress_annotations,
-                ingress_host,
-                ingress_tls_host,
                 args_with_right_defaults.checkpoint_sync_enabled,
                 checkpoint_sync_url,
                 args_with_right_defaults.port_publisher,
                 index,
+                kubernetes_config,
             )
 
         # Add participant cl additional prometheus labels

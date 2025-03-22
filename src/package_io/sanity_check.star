@@ -12,10 +12,6 @@ PARTICIPANT_CATEGORIES = {
         "el_max_cpu",
         "el_min_mem",
         "el_max_mem",
-        "el_ingress_class_name",
-        "el_ingress_annotations",
-        "el_ingress_host",
-        "el_ingress_tls_host",
         "cl_type",
         "cl_image",
         "cl_log_level",
@@ -28,10 +24,6 @@ PARTICIPANT_CATEGORIES = {
         "cl_max_cpu",
         "cl_min_mem",
         "cl_max_mem",
-        "cl_ingress_class_name",
-        "cl_ingress_annotations",
-        "cl_ingress_host",
-        "cl_ingress_tls_host",
         "supernode",
         "use_separate_vc",
         "vc_type",
@@ -68,6 +60,8 @@ PARTICIPANT_CATEGORIES = {
         "blobber_extra_params",
         "builder_network_params",
         "keymanager_enabled",
+        "el_kubernetes_config",
+        "cl_kubernetes_config",
     ],
 }
 
@@ -86,11 +80,6 @@ PARTICIPANT_MATRIX_PARAMS = {
             "el_max_cpu",
             "el_min_mem",
             "el_max_mem",
-            # Might not be needed
-            "el_ingress_class_name",
-            "el_ingress_annotations",
-            "el_ingress_host",
-            "el_ingress_tls_host",
         ],
         "cl": [
             "cl_type",
@@ -105,11 +94,6 @@ PARTICIPANT_MATRIX_PARAMS = {
             "cl_max_cpu",
             "cl_min_mem",
             "cl_max_mem",
-            # Might not be needed
-            "cl_ingress_class_name",
-            "cl_ingress_annotations",
-            "cl_ingress_host",
-            "cl_ingress_tls_host",
             "use_separate_vc",
             "vc_type",
             "vc_image",
@@ -362,6 +346,71 @@ def validate_params(plan, input_args, category, allowed_params):
                 )
 
 
+def validate_kubernetes_config(kubernetes_config):
+    """Validate the kubernetes configuration structure"""
+    if type(kubernetes_config) != "dict":
+        fail("kubernetes_config must be a dict")
+    
+    if "extra_ingress_config" in kubernetes_config:
+        if type(kubernetes_config["extra_ingress_config"]) != "dict":
+            fail("extra_ingress_config must be a dict")
+        
+        ingress_config = kubernetes_config["extra_ingress_config"]
+        
+        # Validate ingresses list if it exists
+        if "ingresses" in ingress_config:
+            if type(ingress_config["ingresses"]) != "list":
+                fail("ingresses must be a list")
+            
+            # Validate each ingress entry
+            for ingress in ingress_config["ingresses"]:
+                if type(ingress) != "dict":
+                    fail("ingress entry must be a dict")
+                
+                # Validate string fields
+                for field in ["host", "tls_host", "class_name"]:
+                    if field in ingress and type(ingress[field]) != "string":
+                        fail("{} must be a string".format(field))
+                
+                # Validate TLS configuration
+                if "tls" in ingress:
+                    if type(ingress["tls"]) != "dict":
+                        fail("tls must be a dict")
+                    if "secret_name" in ingress["tls"] and type(ingress["tls"]["secret_name"]) != "string":
+                        fail("secret_name must be a string")
+                
+                # Validate annotations
+                if "annotations" in ingress and type(ingress["annotations"]) != "dict":
+                    fail("annotations must be a dict")
+                
+                # Validate HTTP rules
+                if "http_rules" in ingress:
+                    if type(ingress["http_rules"]) != "list":
+                        fail("http_rules must be a list")
+                    
+                    for rule in ingress["http_rules"]:
+                        if type(rule) != "dict":
+                            fail("http rule must be a dict")
+                        
+                        for field in ["path", "path_type"]:
+                            if field in rule and type(rule[field]) != "string":
+                                fail("{} must be a string".format(field))
+                        
+                        if "port" in rule:
+                            if type(rule["port"]) == "dict":
+                                if "name" in rule["port"] and type(rule["port"]["name"]) != "string":
+                                    fail("port name must be a string")
+                                if "number" in rule["port"] and type(rule["port"]["number"]) != "int":
+                                    fail("port number must be an integer")
+                            elif type(rule["port"]) != "int":
+                                fail("port must be an integer or a dict")
+    
+    if "nodeSelector" in kubernetes_config and type(kubernetes_config["nodeSelector"]) != "dict":
+        fail("nodeSelector must be a dict")
+    
+    if "tolerations" in kubernetes_config and type(kubernetes_config["tolerations"]) != "list":
+        fail("tolerations must be a list")
+
 def sanity_check(plan, input_args):
     # Checks participants
     deep_validate_params(
@@ -421,6 +470,14 @@ def sanity_check(plan, input_args):
                     param, combined_root_params
                 )
             )
+
+    # Check for kubernetes_config in participants
+    if "participants" in input_args:
+        for participant in input_args["participants"]:
+            if "el_kubernetes_config" in participant:
+                validate_kubernetes_config(participant["el_kubernetes_config"])
+            if "cl_kubernetes_config" in participant:
+                validate_kubernetes_config(participant["cl_kubernetes_config"])
 
     # If everything passes, print a message
     plan.print("Sanity check passed")

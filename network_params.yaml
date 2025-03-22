@@ -12,10 +12,6 @@ participants:
     el_max_cpu: 0
     el_min_mem: 0
     el_max_mem: 0
-    el_ingress_class_name: ""
-    el_ingress_annotations: {}
-    el_ingress_host: ""
-    el_ingress_tls_host: ""
 # CL
     cl_type: lighthouse
     cl_image: sigp/lighthouse:latest-unstable
@@ -29,10 +25,6 @@ participants:
     cl_max_cpu: 0
     cl_min_mem: 0
     cl_max_mem: 0
-    cl_ingress_class_name: ""
-    cl_ingress_annotations: {}
-    cl_ingress_host: ""
-    cl_ingress_tls_host: ""
     supernode: false
     use_separate_vc: true
 # Validator
@@ -178,6 +170,7 @@ xatu_sentry_params:
     - contribution_and_proof
     - blob_sidecar
 apache_port: 40000
+# Configuration for various services
 global_tolerations: []
 global_node_selectors: {}
 keymanager_enabled: false
@@ -202,7 +195,3 @@ port_publisher:
   additional_services:
     enabled: false
     public_port_start: 36000
-global_ingress_class_name: ""
-global_ingress_annotations: {}
-global_ingress_host: ""
-global_ingress_tls_host: ""

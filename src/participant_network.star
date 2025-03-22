@@ -38,10 +38,6 @@ def launch_participant_network(
     xatu_sentry_params,
     global_tolerations,
     global_node_selectors,
-    global_ingress_class_name,
-    global_ingress_annotations,
-    global_ingress_host,
-    global_ingress_tls_host,
     keymanager_enabled,
     parallel_keystore_generation,
 ):
@@ -140,10 +136,6 @@ def launch_participant_network(
         args_with_right_defaults.global_log_level,
         global_node_selectors,
         global_tolerations,
-        global_ingress_class_name,
-        global_ingress_annotations,
-        global_ingress_host,
-        global_ingress_tls_host,
         persistent,
         network_id,
         num_participants,
@@ -178,15 +170,11 @@ def launch_participant_network(
         all_el_contexts,
         global_node_selectors,
         global_tolerations,
-        global_ingress_class_name,
-        global_ingress_annotations,
-        global_ingress_host,
-        global_ingress_tls_host,
         persistent,
         num_participants,
         validator_data,
         prysm_password_relative_filepath,
-        prysm_password_artifact_uuid,
+        prysm_password_artifact_uuid
     )
 
     ethereum_metrics_exporter_context = None

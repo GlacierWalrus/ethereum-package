@@ -50,14 +50,11 @@ def launch(
     persistent,
     tolerations,
     node_selectors,
-    ingress_class_name,
-    ingress_annotations,
-    ingress_host,
-    ingress_tls_host,
     checkpoint_sync_enabled,
     checkpoint_sync_url,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.cl_log_level, global_log_level, VERBOSITY_LEVELS
@@ -79,12 +76,9 @@ def launch(
         node_selectors,
         checkpoint_sync_enabled,
         checkpoint_sync_url,
-        ingress_class_name,
-        ingress_annotations,
-        ingress_host,
-        ingress_tls_host,
         port_publisher,
         participant_index,
+        kubernetes_config,
     )
 
     beacon_service = plan.add_service(beacon_service_name, beacon_config)
@@ -173,12 +167,9 @@ def get_beacon_config(
     node_selectors,
     checkpoint_sync_enabled,
     checkpoint_sync_url,
-    ingress_class_name,
-    ingress_annotations,
-    ingress_host,
-    ingress_tls_host,
     port_publisher,
     participant_index,
+    kubernetes_config,
 ):
     # If snooper is enabled use the snooper engine context, otherwise use the execution client context
     if participant.snooper_enabled:
@@ -342,10 +333,7 @@ def get_beacon_config(
         ),
         "tolerations": tolerations,
         "node_selectors": node_selectors,
-        "ingress_class_name": ingress_class_name,
-        "ingress_annotations": ingress_annotations,
-        # "ingress_host": ingress_host,
-        # "ingress_tls_host": ingress_tls_host,
+        "kubernetes_config": kubernetes_config,
     }
 
     if int(participant.cl_min_cpu) > 0:
@@ -356,12 +344,6 @@ def get_beacon_config(
         config_args["min_memory"] = int(participant.cl_min_mem)
     if int(participant.cl_max_mem) > 0:
         config_args["max_memory"] = int(participant.cl_max_mem)
-
-    # Only add ingress_tls_host if it's not None
-    if ingress_host:
-        config_args["ingress_host"] = ingress_host
-    if ingress_tls_host:
-        config_args["ingress_tls_host"] = ingress_tls_host
 
     return ServiceConfig(**config_args)
 

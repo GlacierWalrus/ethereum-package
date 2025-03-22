@@ -51,14 +51,13 @@ def launch(
     checkpoint_sync_url,
     port_publisher,
     participant_index,
-    ingress_class_name,
-    ingress_annotations,
+    kubernetes_config,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.cl_log_level, global_log_level, VERBOSITY_LEVELS
     )
-
-    config = get_beacon_config(
+    # Launch Beacon node
+    beacon_config = get_beacon_config(
         plan,
         launcher,
         beacon_service_name,
@@ -76,11 +75,10 @@ def launch(
         checkpoint_sync_url,
         port_publisher,
         participant_index,
-        ingress_class_name,
-        ingress_annotations,
+        kubernetes_config,
     )
 
-    beacon_service = plan.add_service(beacon_service_name, config)
+    beacon_service = plan.add_service(beacon_service_name, beacon_config)
 
     beacon_http_port = beacon_service.ports[constants.HTTP_PORT_ID]
     beacon_http_url = "http://{0}:{1}".format(
@@ -150,8 +148,7 @@ def get_beacon_config(
     checkpoint_sync_url,
     port_publisher,
     participant_index,
-    ingress_class_name,
-    ingress_annotations,
+    kubernetes_config,
 ):
     validator_keys_dirpath = ""
     validator_secrets_dirpath = ""
@@ -360,8 +357,7 @@ def get_beacon_config(
         "tolerations": tolerations,
         "node_selectors": node_selectors,
         "user": User(uid=0, gid=0),
-        "ingress_class_name": ingress_class_name,
-        "ingress_annotations": ingress_annotations,
+        "kubernetes_config": kubernetes_config,
     }
 
     if int(participant.cl_min_cpu) > 0:

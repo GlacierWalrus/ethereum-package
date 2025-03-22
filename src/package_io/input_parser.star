@@ -242,27 +242,19 @@ def input_parser(plan, input_args):
                 el_extra_env_vars=participant["el_extra_env_vars"],
                 el_extra_labels=participant["el_extra_labels"],
                 el_tolerations=participant["el_tolerations"],
-                el_ingress_class_name=participant["el_ingress_class_name"],
-                el_ingress_annotations=participant["el_ingress_annotations"],
-                el_ingress_host=participant["el_ingress_host"],
-                el_ingress_tls_host=participant["el_ingress_tls_host"],
                 cl_type=participant["cl_type"],
                 cl_image=participant["cl_image"],
                 cl_log_level=participant["cl_log_level"],
                 cl_volume_size=participant["cl_volume_size"],
                 cl_extra_env_vars=participant["cl_extra_env_vars"],
                 cl_tolerations=participant["cl_tolerations"],
-                cl_ingress_class_name=participant["cl_ingress_class_name"],
-                cl_ingress_annotations=participant["cl_ingress_annotations"],
-                cl_ingress_host=participant["cl_ingress_host"],
-                cl_ingress_tls_host=participant["cl_ingress_tls_host"],
+                cl_extra_params=participant["cl_extra_params"],
+                cl_extra_labels=participant["cl_extra_labels"],
                 use_separate_vc=participant["use_separate_vc"],
                 vc_type=participant["vc_type"],
                 vc_image=participant["vc_image"],
                 vc_log_level=participant["vc_log_level"],
                 vc_tolerations=participant["vc_tolerations"],
-                cl_extra_params=participant["cl_extra_params"],
-                cl_extra_labels=participant["cl_extra_labels"],
                 vc_extra_params=participant["vc_extra_params"],
                 vc_extra_env_vars=participant["vc_extra_env_vars"],
                 vc_extra_labels=participant["vc_extra_labels"],
@@ -309,6 +301,8 @@ def input_parser(plan, input_args):
                 blobber_enabled=participant["blobber_enabled"],
                 blobber_extra_params=participant["blobber_extra_params"],
                 keymanager_enabled=participant["keymanager_enabled"],
+                el_kubernetes_config=participant["el_kubernetes_config"],
+                cl_kubernetes_config=participant["cl_kubernetes_config"],
             )
             for participant in result["participants"]
         ],
@@ -857,29 +851,8 @@ def get_client_tolerations(
 
     return toleration_list
 
-def get_client_ingress_class_name(ingress_class_name, global_ingress_class_name):
-    ingress_class_name = ingress_class_name if ingress_class_name else global_ingress_class_name
-    return ingress_class_name
-
-def get_client_ingress_annotations(ingress_annotations, global_ingress_annotations):
-    ingress_annotations = ingress_annotations if ingress_annotations else global_ingress_annotations
-    return ingress_annotations
-
-def get_client_ingress_host(ingress_host, global_ingress_host):
-    ingress_host = ingress_host if ingress_host else global_ingress_host
-    return ingress_host
-
-def get_client_ingress_tls_host(ingress_tls_host, global_ingress_tls_host):
-    ingress_tls_host = ingress_tls_host if ingress_tls_host else global_ingress_tls_host
-    return ingress_tls_host
-
-def get_client_node_selectors(participant_node_selectors, global_node_selectors):
-    node_selectors = {}
-    node_selectors = participant_node_selectors if participant_node_selectors else {}
-    if node_selectors == {}:
-        node_selectors = global_node_selectors if global_node_selectors else {}
-
-    return node_selectors
+def get_client_node_selectors(node_selectors, global_node_selectors, kubernetes_config=None):
+    return node_selectors if node_selectors else global_node_selectors
 
 
 def default_input_args(input_args):
@@ -906,10 +879,6 @@ def default_input_args(input_args):
         "apache_port": None,
         "global_tolerations": [],
         "global_node_selectors": {},
-        "global_ingress_class_name": "",
-        "global_ingress_annotations": {},
-        "global_ingress_host": "",
-        "global_ingress_tls_host": "",
         "use_remote_signer": False,
         "keymanager_enabled": False,
         "checkpoint_sync_enabled": False,
@@ -961,6 +930,30 @@ def default_network_params():
         "devnet_repo": "ethpandaops",
         "prefunded_accounts": {},
         "gossip_max_size": 10485760,
+    }
+
+
+def get_default_input_args():
+    """Returns a dictionary with default values for all input arguments."""
+    return {
+        "network_params": default_network_params(),
+        "participants": [],
+        "global_log_level": constants.GLOBAL_LOG_LEVEL.info,
+        "global_node_selectors": {},
+        "global_tolerations": [],
+        "kubernetes_config": get_default_kubernetes_config(),
+        "keymanager_enabled": False,
+        "apache_port": 80,
+        "docker_cache_params": get_default_docker_cache_params(),
+        "additional_services": [],
+        "persistent": False,
+        "parallel_keystore_generation": False,
+        "checkpoint_sync_enabled": False,
+        "checkpoint_sync_url": "",
+        "port_publisher": get_port_publisher_params("default"),
+        "mev_type": "",
+        "mev_params": get_default_mev_params(None, "mainnet"),
+        "xatu_sentry_params": get_default_xatu_sentry_params(),
     }
 
 
@@ -1019,10 +1012,6 @@ def default_participant():
         "el_max_cpu": 0,
         "el_min_mem": 0,
         "el_max_mem": 0,
-        "el_ingress_class_name": "",
-        "el_ingress_annotations": {},
-        "el_ingress_host": "",
-        "el_ingress_tls_host": "",
         "cl_type": "lighthouse",
         "cl_image": "",
         "cl_log_level": "",
@@ -1035,10 +1024,6 @@ def default_participant():
         "cl_max_cpu": 0,
         "cl_min_mem": 0,
         "cl_max_mem": 0,
-        "cl_ingress_class_name": "",
-        "cl_ingress_annotations": {},
-        "cl_ingress_host": "",
-        "cl_ingress_tls_host": "",
         "supernode": False,
         "use_separate_vc": None,
         "vc_type": "",
@@ -1078,6 +1063,8 @@ def default_participant():
         "blobber_extra_params": [],
         "builder_network_params": None,
         "keymanager_enabled": None,
+        "el_kubernetes_config": None,
+        "cl_kubernetes_config": None,
     }
 
 
@@ -1547,3 +1534,142 @@ def get_default_ethereum_genesis_generator_params():
     return {
         "image": constants.DEFAULT_ETHEREUM_GENESIS_GENERATOR_IMAGE,
     }
+
+def get_default_kubernetes_config():
+    return KubernetesConfig(
+        extraIngressConfig=ExtraIngressConfig(
+            ingresses=[]
+        )
+    )
+
+def get_kubernetes_config(plan, kubernetes_config):
+    """
+    Get kubernetes configuration for a participant.
+    Returns a KubernetesConfig object.
+    """
+    if not kubernetes_config:
+        # Return empty config instead of None
+        return get_default_kubernetes_config()
+
+    # Extract the extra_ingress_config from kubernetes_config if it exists
+    extra_ingress_config = ExtraIngressConfig(ingresses=[])
+    
+    # Check if extra_ingress_config exists and is not None
+    if kubernetes_config.get("extra_ingress_config"):
+        ingress_config = kubernetes_config["extra_ingress_config"]
+        ingresses = []
+        
+        # Process ingresses if they exist
+        if ingress_config.get("ingresses"):
+            for ingress in ingress_config.get("ingresses"):
+                ingresses.append(process_ingress_config(ingress))
+        
+        extra_ingress_config = ExtraIngressConfig(
+            ingresses=ingresses
+        )
+    
+    # Create and return the KubernetesConfig object
+    return KubernetesConfig(
+        extraIngressConfig=extra_ingress_config
+    )
+
+def process_ingress_config(ingress):
+    """Helper function to process a single ingress configuration"""
+    # Process TLS configuration
+    tls_config = ingress.get("tls", {})
+    
+    # Process HTTP rules
+    http_rules = []
+    for rule in ingress.get("http_rules", []):
+        # Create port configuration if present
+        port = None
+        if "port" in rule:
+            port = IngressPortConfig(
+                name=rule["port"].get("name", ""),
+                number=rule["port"].get("number", 0)
+            )
+        
+        # Create HTTP rule with all values
+        http_rule = IngressHttpRule(
+            path=rule.get("path", ""),
+            path_type=rule.get("path_type", ""),
+            port=port
+        )
+        
+        http_rules.append(http_rule)
+    
+    # Create and return the IngressSpec object with all values
+    return IngressSpec(
+        host=ingress.get("host", ""),
+        ingress_class_name=ingress.get("ingress_class_name", ""),
+        tls=IngressTLSConfig(
+            secret_name=tls_config.get("secret_name", "")
+        ),
+        annotations=ingress.get("annotations", {}),
+        http_rules=http_rules
+    )
+
+def validate_kubernetes_config(kubernetes_config):
+    """Validate the kubernetes configuration structure"""
+    if not type(kubernetes_config) == dict:
+        fail("kubernetes_config must be a dict")
+    
+    # Only check for snake_case version of extra_ingress_config
+    if "extra_ingress_config" in kubernetes_config:
+        extra_ingress_config = kubernetes_config["extra_ingress_config"]
+        if not type(extra_ingress_config) == dict:
+            fail("extra_ingress_config must be a dict")
+        
+        # Check for ingresses list
+        ingresses = extra_ingress_config.get("ingresses", [])
+        if not type(ingresses) == list:
+            fail("ingresses must be a list")
+            
+        for ingress in ingresses:
+            if not type(ingress) == dict:
+                fail("ingress must be a dict")
+                
+            # Basic string fields - only snake_case
+            for field in ["host", "tls_host", "class_name"]:
+                if field in ingress and not type(ingress[field]) == str:
+                    fail("{} must be a string".format(field))
+            
+            # TLS configuration
+            if "tls" in ingress:
+                if not type(ingress["tls"]) == dict:
+                    fail("tls must be a dict")
+                
+                # Only check snake_case for secret_name
+                if "secret_name" in ingress["tls"] and not type(ingress["tls"]["secret_name"]) == str:
+                    fail("secret_name must be a string")
+            
+            # Annotations
+            if "annotations" in ingress:
+                if not type(ingress["annotations"]) == dict:
+                    fail("annotations must be a dict")
+            
+            # HTTP rules - only check snake_case
+            if "http_rules" in ingress:
+                http_rules = ingress["http_rules"]
+                if not type(http_rules) == list:
+                    fail("http_rules must be a list")
+                    
+                for rule in http_rules:
+                    if not type(rule) == dict:
+                        fail("http rule must be a dict")
+                        
+                    # Path and path_type fields
+                    for field in ["path", "path_type"]:
+                        if field in rule and not type(rule[field]) == str:
+                            fail("{} must be a string".format(field))
+                    
+                    # Port configuration
+                    if "port" in rule:
+                        if not type(rule["port"]) == dict:
+                            fail("port must be a dict")
+                            
+                        if "name" in rule["port"] and not type(rule["port"]["name"]) == str:
+                            fail("port name must be a string")
+                            
+                        if "number" in rule["port"] and not type(rule["port"]["number"]) == int:
+                            fail("port number must be an integer")
