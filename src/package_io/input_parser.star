@@ -118,10 +118,6 @@ def input_parser(plan, input_args):
     result["parallel_keystore_generation"] = False
     result["global_tolerations"] = []
     result["global_node_selectors"] = {}
-    result["global_ingress_class_name"] = ""
-    result["global_ingress_annotations"] = {}
-    result["global_ingress_host"] = ""
-    result["global_ingress_tls_host"] = ""
     result["port_publisher"] = get_port_publisher_params("default")
     result["spamoor_params"] = get_default_spamoor_params()
     result["spamoor_blob_params"] = get_default_spamoor_blob_params()
@@ -303,6 +299,7 @@ def input_parser(plan, input_args):
                 keymanager_enabled=participant["keymanager_enabled"],
                 el_kubernetes_config=participant["el_kubernetes_config"],
                 cl_kubernetes_config=participant["cl_kubernetes_config"],
+                vc_kubernetes_config=participant["vc_kubernetes_config"],
             )
             for participant in result["participants"]
         ],
@@ -491,10 +488,6 @@ def input_parser(plan, input_args):
         ),
         global_tolerations=result["global_tolerations"],
         global_node_selectors=result["global_node_selectors"],
-        global_ingress_class_name=result["global_ingress_class_name"],
-        global_ingress_annotations=result["global_ingress_annotations"],
-        global_ingress_host=result["global_ingress_host"],
-        global_ingress_tls_host=result["global_ingress_tls_host"],
         keymanager_enabled=result["keymanager_enabled"],
         checkpoint_sync_enabled=result["checkpoint_sync_enabled"],
         checkpoint_sync_url=result["checkpoint_sync_url"],
@@ -1065,6 +1058,7 @@ def default_participant():
         "keymanager_enabled": None,
         "el_kubernetes_config": None,
         "cl_kubernetes_config": None,
+        "vc_kubernetes_config": None,
     }
 
 
@@ -1567,10 +1561,17 @@ def get_kubernetes_config(plan, kubernetes_config):
         extra_ingress_config = ExtraIngressConfig(
             ingresses=ingresses
         )
+
+    if kubernetes_config.get("workload_type"):
+        workload_type = kubernetes_config.get("workload_type")
+    else:
+        # Backwards compatibility
+        workload_type = "pod"
     
     # Create and return the KubernetesConfig object
     return KubernetesConfig(
-        extraIngressConfig=extra_ingress_config
+        extraIngressConfig=extra_ingress_config,
+        workload_type=workload_type
     )
 
 def process_ingress_config(ingress):

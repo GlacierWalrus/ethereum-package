@@ -72,8 +72,6 @@ def launch(
         participant_index,
         kubernetes_config,
     )
-    plan.print(">>>> DEBUG - config for {0}: {1}".format(service_name, config))
-
     service = plan.add_service(service_name, config)
 
     enode, enr = el_admin_node_info.get_enode_enr_for_node(
@@ -118,11 +116,6 @@ def get_config(
     participant_index,
     kubernetes_config,
 ):
-    plan.print("DEBUG - ENTRY kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
-    # Get the kubernetes config for this participant
-    # kubernetes_config = input_parser.get_kubernetes_config(plan,kubernetes_config)
-    plan.print("DEBUG - After input_parser.get_kubernetes_config kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
-
     if (
         "--gcmode=archive" in participant.el_extra_params
         or "--gcmode archive" in participant.el_extra_params
@@ -330,9 +323,6 @@ def get_config(
         "node_selectors": node_selectors,
         "kubernetes_config": kubernetes_config,
     }
-
-    # Add debug print of kubernetes_config
-    plan.print("DEBUG - kubernetes_config for {0}: {1}".format(service_name, kubernetes_config))
 
     if participant.el_min_cpu > 0:
         config_args["min_cpu"] = participant.el_min_cpu

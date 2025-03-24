@@ -62,6 +62,7 @@ PARTICIPANT_CATEGORIES = {
         "keymanager_enabled",
         "el_kubernetes_config",
         "cl_kubernetes_config",
+        "vc_kubernetes_config",
     ],
 }
 
@@ -478,6 +479,8 @@ def sanity_check(plan, input_args):
                 validate_kubernetes_config(participant["el_kubernetes_config"])
             if "cl_kubernetes_config" in participant:
                 validate_kubernetes_config(participant["cl_kubernetes_config"])
+            if "vc_kubernetes_config" in participant:
+                validate_kubernetes_config(participant["vc_kubernetes_config"])
 
     # If everything passes, print a message
     plan.print("Sanity check passed")

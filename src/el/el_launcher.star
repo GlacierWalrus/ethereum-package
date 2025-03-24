@@ -132,7 +132,6 @@ def launch(
 
         el_service_name = "el-{0}-{1}-{2}".format(index_str, el_type, cl_type)
 
-        plan.print("DEBUG - ENTRY el_kubernetes_config for {0}: {1}".format(el_service_name, participant.el_kubernetes_config))
         # Get kubernetes configuration
         kubernetes_config = input_parser.get_kubernetes_config(
             plan,
