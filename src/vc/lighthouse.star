@@ -30,6 +30,7 @@ def get_config(
     keymanager_enabled,
     port_publisher,
     vc_index,
+    kubernetes_config,
 ):
     log_level = input_parser.get_client_log_level_or_default(
         participant.vc_log_level, global_log_level, VERBOSITY_LEVELS
@@ -126,6 +127,7 @@ def get_config(
         ),
         "tolerations": tolerations,
         "node_selectors": node_selectors,
+        "kubernetes_config": kubernetes_config,
     }
 
     if participant.vc_min_cpu > 0:

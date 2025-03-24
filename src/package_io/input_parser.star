@@ -1533,7 +1533,8 @@ def get_default_kubernetes_config():
     return KubernetesConfig(
         extraIngressConfig=ExtraIngressConfig(
             ingresses=[]
-        )
+        ),
+        workload_type="pod"
     )
 
 def get_kubernetes_config(plan, kubernetes_config):

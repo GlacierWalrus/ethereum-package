@@ -349,6 +349,12 @@ def launch_participant_network(
         if remote_signer_context and remote_signer_context.metrics_info:
             remote_signer_context.metrics_info["config"] = participant.prometheus_config
 
+        # Get kubernetes configuration
+        vc_kubernetes_config = input_parser.get_kubernetes_config(
+            plan,
+            participant.vc_kubernetes_config,
+        )
+
         vc_context = vc.launch(
             plan=plan,
             launcher=vc.new_vc_launcher(el_cl_genesis_data=el_cl_data),
@@ -374,6 +380,7 @@ def launch_participant_network(
             electra_fork_epoch=network_params.electra_fork_epoch,
             port_publisher=args_with_right_defaults.port_publisher,
             vc_index=current_vc_index,
+            kubernetes_config=vc_kubernetes_config,
         )
         all_vc_contexts.append(vc_context)
 

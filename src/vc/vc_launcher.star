@@ -38,6 +38,7 @@ def launch(
     electra_fork_epoch,  # TODO: remove when deneb rebase is done
     port_publisher,
     vc_index,
+    kubernetes_config,
 ):
     if node_keystore_files == None:
         return None
@@ -75,6 +76,7 @@ def launch(
             keymanager_enabled=keymanager_enabled,
             port_publisher=port_publisher,
             vc_index=vc_index,
+            kubernetes_config=kubernetes_config,
         )
     elif vc_type == constants.VC_TYPE.lodestar:
         config = lodestar.get_config(
